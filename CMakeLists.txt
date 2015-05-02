@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.2)
+project(neurodynamics)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "/home/$ENV{USER}/CLionProjects/${PROJECT_NAME}/")
+
+if(CMAKE_BUILD_TYPE STREQUAL Release)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+else(CMAKE_BUILD_TYPE STREQUAL Release)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -d -g -Wall")
+    add_definitions(-DNEURODYNAMICS_DEBUG)
+endif(CMAKE_BUILD_TYPE STREQUAL Release)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+find_package(MPI)
+if (MPI_FOUND)
+    include_directories( ${MPI_C_INCLUDE_PATH} )
+    include_directories( ${MPI_CXX_INCLUDE_PATH} )
+    add_definitions(-DNEURODYNAMICS_WITH_MPI)
+    message( "MPI package was found. Proceeding." )
+    set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+    set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS})
+    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_CXX_LINK_FLAGS})
+    set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_C_COMPILE_FLAGS})
+    set(CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} ${MPI_C_LINK_FLAGS})
+else(MPI_FOUND)
+    message( WARNING "Could not find MPI package!" )
+    message( WARNING "Building non-MPI version!" )
+endif(MPI_FOUND)
+
+include_directories(headers)
+add_subdirectory(sources)
