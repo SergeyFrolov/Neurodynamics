@@ -70,13 +70,7 @@ ConnectionsDenseMPI::ConnectionsDenseMPI(int _my_rank, int _num_ranks,
   }
   MPI_Bcast(&density, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-  typedef int int_array[];
-  typedef MPI_Aint Aint_array[];
-  typedef MPI_Datatype Datatype_array[];
-  MPI_Type_create_struct(2, std::move(int_array{ sizeof(double), sizeof(double) }),
-                         std::move(Aint_array{ 0, sizeof(double) }),
-                         std::move(Datatype_array{ MPI_DOUBLE, MPI_DOUBLE }),
-                         &MPI_REMOTE_NEURON);
+  MPI_Type_contiguous(2, MPI_DOUBLE, &MPI_REMOTE_NEURON);
   MPI_Type_commit(&MPI_REMOTE_NEURON);
 }
 
@@ -118,8 +112,8 @@ void ConnectionsDenseMPI::GetAllNeuronsToRecv(std::vector<std::vector<SynapticCo
       } else {
         GetNeuronsToRecv(iter_n, &tmp_vector);
         tmp_vector_size = tmp_vector.size();
-        MPI_Ssend(&(tmp_vector_size), 1, MPI_INT, iter_n / n_per_rank, size + 1 + iter_n, MPI_COMM_WORLD);
-        MPI_Ssend(tmp_vector.data(), tmp_vector_size, MPI_REMOTE_NEURON, iter_n / n_per_rank, iter_n, MPI_COMM_WORLD);
+        MPI_Send(&(tmp_vector_size), 1, MPI_INT, iter_n / n_per_rank, size + 1 + iter_n, MPI_COMM_WORLD);
+        MPI_Send(tmp_vector.data(), tmp_vector_size, MPI_REMOTE_NEURON, iter_n / n_per_rank, iter_n, MPI_COMM_WORLD);
         tmp_vector.clear();
       }
     }
