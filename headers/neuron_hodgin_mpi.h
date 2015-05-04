@@ -11,7 +11,7 @@
 #include "mpi.h"
 
 class NeuronHodgkinMPI : public NeuronHodgkin {
-  enum algorithm {p2p, alltoall};
+  enum algorithm {p2p, allgather};
   double collective_threshold = MPI_COLLECTIVE_DENSITY_THRESHOLD;
   algorithm communication_algorithm;
 
@@ -28,7 +28,7 @@ class NeuronHodgkinMPI : public NeuronHodgkin {
 
   std::vector<std::vector<MPI_Request>> recv_requests;
   std::vector<std::vector<MPI_Request>> send_requests;
-  MPI_Request all_to_all_request;
+  MPI_Request* allgather_request;
  public:
   NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterface* Connections,
                    int _my_rank, int _num_ranks,
@@ -37,7 +37,7 @@ class NeuronHodgkinMPI : public NeuronHodgkin {
   int process(int turns) override;
   void SendRecvPresynaptic() override;
   void print(int step, std::string name = OUTPUT_PROCESS, int process_level = OUTPUT_PROCESS_LEVEL) override;
-
   double CalcSynapticCurrentCollective();
+  ~NeuronHodgkinMPI();
 };
 #endif  // NEURODYNAMICS_NEURON_HODGIN_MPI_H_
