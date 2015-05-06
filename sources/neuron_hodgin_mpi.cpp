@@ -153,9 +153,9 @@ int NeuronHodgkinMPI::process(int turns) {
                      MPI_COMM_WORLD, allgather_request);
       }
     for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
-      m[current_neuron] = RungeKutta4(&_CalcDerivativeFm, m[current_neuron], DELTAT);
-      h[current_neuron] = RungeKutta4(&_CalcDerivativeFh, h[current_neuron], DELTAT);
-      n[current_neuron] = RungeKutta4(&_CalcDerivativeFn, n[current_neuron], DELTAT);
+      m[current_neuron] = RungeKutta4(&NeuronHodgkinMPI::_CalcDerivativeFm, m[current_neuron], DELTAT);
+      h[current_neuron] = RungeKutta4(&NeuronHodgkinMPI::_CalcDerivativeFh, h[current_neuron], DELTAT);
+      n[current_neuron] = RungeKutta4(&NeuronHodgkinMPI::_CalcDerivativeFn, n[current_neuron], DELTAT);
     }
     if (communication_algorithm == p2p) {
       for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
@@ -174,7 +174,7 @@ int NeuronHodgkinMPI::process(int turns) {
       }
     }
     for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
-      V_new[current_neuron] = RungeKutta4(&_CalcDerivativeFv, V_old[current_neuron], DELTAT);
+      V_new[current_neuron] = RungeKutta4(&NeuronHodgkinMPI::_CalcDerivativeFv, V_old[current_neuron], DELTAT);
     }
     tmp_ptr_V = V_new;
     V_new = V_old;
