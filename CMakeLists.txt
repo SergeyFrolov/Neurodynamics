@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.2)
 project(neurodynamics)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "/home/$ENV{USER}/CLionProjects/${PROJECT_NAME}/")
+if(WIN32)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "/home/$ENV{USER}/CLionProjects/${PROJECT_NAME}/")
+endif(WIN32)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 else(CMAKE_BUILD_TYPE STREQUAL Release)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -d -g -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
     add_definitions(-DNEURODYNAMICS_DEBUG)
 endif(CMAKE_BUILD_TYPE STREQUAL Release)
 
@@ -22,6 +24,30 @@ if (MPI_FOUND)
     set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
     set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_C_COMPILE_FLAGS})
     set(CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} ${MPI_C_LINK_FLAGS})
+
+    option(USE_COLLECTIVE "Use collective communication algorithm." ON)
+    option(USE_P2P "Use point to point communication algorithm." ON)
+
+    if((NOT USE_COLLECTIVE) AND (NOT USE_P2P))
+        message(FATAL ERROR "No communication algorithms chosen.")
+    endif((NOT USE_COLLECTIVE) AND (NOT USE_P2P))
+
+    if((USE_COLLECTIVE) AND (NOT USE_P2P))
+        message("Using collective communication algorithm.")
+        add_definitions(-DMPI_COLLECTIVE_DENSITY_THRESHOLD=0.0)
+        set(TARGET_NAME neurodynamics_coll)
+    endif((USE_COLLECTIVE) AND (NOT USE_P2P))
+
+    if((NOT USE_COLLECTIVE) AND (USE_P2P))
+        message("Using point to point communication algorithm.")
+        add_definitions(-DMPI_COLLECTIVE_DENSITY_THRESHOLD=1.0)
+        set(TARGET_NAME neurodynamics_p2p)
+    endif((NOT USE_COLLECTIVE) AND (USE_P2P))
+
+    if((USE_COLLECTIVE) AND (USE_P2P))
+        message("Using both communication algorithms.")
+        set(TARGET_NAME neurodynamics)
+    endif((USE_COLLECTIVE) AND (USE_P2P))
 else(MPI_FOUND)
     message( WARNING "Could not find MPI package!" )
     message( WARNING "Building non-MPI version!" )

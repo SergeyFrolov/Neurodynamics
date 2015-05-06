@@ -10,18 +10,18 @@ set(SOURCE_FILES
     neuronetwork.cpp
 )
 
-add_executable(neurodynamics ${SOURCE_FILES})
+add_executable(${TARGET_NAME} ${SOURCE_FILES})
 
 if (MPI_CXX_LIBRARIES)
-    target_link_libraries(neurodynamics ${MPI_CXX_LIBRARIES})
+    target_link_libraries(${TARGET_NAME} ${MPI_CXX_LIBRARIES})
 endif()
 
 if(MPI_CXX_COMPILE_FLAGS)
-  set_target_properties(neurodynamics PROPERTIES
+  set_target_properties(${TARGET_NAME} PROPERTIES
     COMPILE_FLAGS "${MPI_CXX_COMPILE_FLAGS}")
 endif()
 
 if(MPI_CXX_LINK_FLAGS)
-  set_target_properties(neurodynamics PROPERTIES
+  set_target_properties(${TARGET_NAME} PROPERTIES
     LINK_FLAGS "${MPI_CXX_LINK_FLAGS}")
 endif()
