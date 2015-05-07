@@ -30,7 +30,7 @@
 #define I_EXTERNAL_NULL             0
 #define I_EXTERNAL_RANDOM           1
 
-#define I_EXTERNAL_RANDOM_MAX_VALUE 8.
+#define I_EXTERNAL_RANDOM_MAX_VALUE 5.
 // values would be in following range:
 // [0, I_EXTERNAL_RANDOM_MAX_VALUE]
 // could be negative
@@ -78,18 +78,25 @@
 /* output-related */
 #define OUTPUT_TOPOLOGY        "topology"
 #define OUTPUT_INIT            "init_state"  // including I_ext
+#define OUTPUT_FINAL           "final_state"
 #define OUTPUT_PROCESS         "mid_state"
+#ifndef OUTPUT_PROCESS_LEVEL
 #define OUTPUT_PROCESS_LEVEL   3
+#endif
+#ifndef OUTPUT_PRINT_STEP
+#define OUTPUT_PRINT_STEP      1 // 1 - every step, 10 - every 10th
+#endif
 // 0 - no mid output (only init and final)
 // 1 - only peaks
 #define OUTPUT_PROCESS_PEAK_THRESHOLD 0  // mV
 // 2 - only V_new
 // 3 - everything, but Sact
 // 4 - everything and Sact
-#define OUTPUT_FINAL           "final_state"
+
 
 // external defines:
 // NEURODYNAMICS_WITH_MPI
 // NEURODYNAMICS_DEBUG
+// OUTPUT_VERBOSE
 
 #endif  // NEURODYNAMICS_DEFINES_H_

@@ -60,9 +60,9 @@ ConnectionsDenseMPI::ConnectionsDenseMPI(int _my_rank, int _num_ranks,
           connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
           edges++;
         }
-
-    print();
-
+#ifdef OUTPUT_VERBOSE
+  print();
+#endif
     density = (size <= 1) ? 0 : edges / (size * (size - 1));
   }
   else {

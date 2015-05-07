@@ -1,9 +1,21 @@
 cmake_minimum_required(VERSION 3.2)
 project(neurodynamics)
 
-if(WIN32)
+option(VERBOSE_OUTPUT "If turned off: only initial, final states and voltage of every 100th step would be printed." ON)
+if(VERBOSE_OUTPUT)
+    message("Will print initial, every 100th step(voltage) and final state of neurons.")
+    add_definitions(-DVERBOSE_OUTPUT)
+    add_definitions(-DOUTPUT_PROCESS_LEVEL=3)
+    add_definitions(-DOUTPUT_PRINT_STEP=1)
+else(VERBOSE_OUTPUT)
+    message("Will print initial, middle(full), final state of neurons and topology.")
+    add_definitions(-DOUTPUT_PROCESS_LEVEL=2)
+    add_definitions(-DOUTPUT_PRINT_STEP=100)
+endif(VERBOSE_OUTPUT)
+
+if(CYGWIN)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "/home/$ENV{USER}/CLionProjects/${PROJECT_NAME}/")
-endif(WIN32)
+endif(CYGWIN)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")

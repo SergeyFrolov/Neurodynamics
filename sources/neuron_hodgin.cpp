@@ -95,7 +95,10 @@ int NeuronHodgkin::process(int turns) {
     tmp_ptr_V = V_new;
     V_new = V_old;
     V_old = tmp_ptr_V;
-    print(cur_turn);
+#if defined(OUTPUT_PRINT_STEP) && OUTPUT_PRINT_STEP >= 1
+    if((cur_turn % OUTPUT_PRINT_STEP) == 0)
+#endif
+      print(cur_turn);
   }
 
   print(-1, OUTPUT_FINAL, 3);
@@ -280,10 +283,10 @@ void NeuronHodgkin::print(int step, std::string name, int process_level) {
   }
 
   if (process_level == 2) {
+    std::cout << step << ": ";
     for (unsigned int i = 0; i < neuron_num; i++) {
       std::cout << V_new[i] << " ";
     }
-
     std::cout << std::endl;
   }
   if (process_level >= 3) {

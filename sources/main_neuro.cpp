@@ -47,8 +47,8 @@ int main(int argc, char *argv[]) {
   Neuronetwork hh(neurons, connections);
 
   if (my_rank == 0) {
-      std::cout << "Iterations" << turns_num << std::endl;
-      std::cout << "Amount of neurons " << neuron_num << std::endl;
+      std::cout << "Iterations             " << turns_num << std::endl;
+      std::cout << "Amount of neurons      " << neuron_num << std::endl;
       std::cout << "Connection probability " << connection_probability << std::endl;
   }
   init_finish_t = MPI_Wtime();

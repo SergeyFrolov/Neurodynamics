@@ -179,8 +179,11 @@ int NeuronHodgkinMPI::process(int turns) {
     tmp_ptr_V = V_new;
     V_new = V_old;
     V_old = tmp_ptr_V;
-    print(cur_turn);
-  }
+#if defined(OUTPUT_PRINT_STEP) && OUTPUT_PRINT_STEP >= 1
+    if((cur_turn % OUTPUT_PRINT_STEP) == 0)
+#endif
+      print(cur_turn);
+ }
 #ifdef NEURODYNAMICS_DEBUG
   std::cout << "Rank[" << my_rank << "] Finishing process." << std::endl;
 #endif

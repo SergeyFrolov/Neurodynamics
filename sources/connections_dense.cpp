@@ -54,9 +54,9 @@ ConnectionsDense::ConnectionsDense(int _size, double _density,
         connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
         edges++;
       }
-
+#ifdef OUTPUT_VERBOSE
   print();
-
+#endif
   density = (size == 1) ? 0 : edges / (size * (size - 1));
 }
 
