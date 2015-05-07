@@ -21,7 +21,7 @@ NeuronHodgkin::NeuronHodgkin(unsigned int first_neuron, unsigned int last_neuron
   n     = new double[neuron_num];
   I_ext = new double[neuron_num];
   I_syn = new double[neuron_num];
-  send_Sact = new double[neuron_num];
+  send_neuron_buffer = new remote_neuron[neuron_num];
 
   recv_connections.resize(neuron_num);
   send_ids.resize(neuron_num);
@@ -58,7 +58,7 @@ NeuronHodgkin::NeuronHodgkin(unsigned int first_neuron, unsigned int last_neuron
     m[i] = 0.0526;
     h[i] = 0.598;
     n[i] = 0.317;
-    send_Sact[i] = 0.0001;
+    send_neuron_buffer[i].Sact_generated = 0.0001;
   }
 }
 
@@ -75,7 +75,8 @@ int NeuronHodgkin::process(int turns) {
 
   for (int cur_turn = 0; cur_turn < turns; cur_turn++) {
     for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
-      send_Sact[current_neuron] = CalcPostSActivation(send_Sact[current_neuron]);
+      send_neuron_buffer[current_neuron].Sact_generated =
+              CalcPostSActivation(send_neuron_buffer[current_neuron].Sact_generated);
       SendRecvPresynaptic();
     }
     for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
@@ -110,7 +111,7 @@ void NeuronHodgkin::SendRecvPresynaptic() {
     presynaptic_neurons[current_neuron][iter_neuron].voltage =
       V_old[recv_connections[current_neuron][iter_neuron].id];
     presynaptic_neurons[current_neuron][iter_neuron].Sact_generated =
-      send_Sact[recv_connections[current_neuron][iter_neuron].id];
+            send_neuron_buffer[recv_connections[current_neuron][iter_neuron].id].Sact_generated;
   }
 }
 /*
@@ -338,7 +339,7 @@ void NeuronHodgkin::print(int step, std::string name, int process_level) {
   if (process_level >= 4) {
     std::cout << "send_S_act:\n";
     for (unsigned int i = 0; i < neuron_num; i++) {
-      std::cout << send_Sact[i] << " ";
+      std::cout << send_neuron_buffer[i].Sact_generated << " ";
     }
     std::cout << std::endl;
   }
@@ -358,5 +359,6 @@ NeuronHodgkin::~NeuronHodgkin() {
       delete[] presynaptic_neurons[i];
   }
   delete[] presynaptic_neurons;
-  delete[] send_Sact;
+  if (send_neuron_buffer != NULL)
+    delete[] send_neuron_buffer;
 }

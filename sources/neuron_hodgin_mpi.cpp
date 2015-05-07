@@ -31,7 +31,6 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
   n = new double[neuron_num];
   I_ext = new double[neuron_num];
   I_syn = new double[neuron_num];
-  send_Sact = new double[neuron_num];
 
   recv_connections.resize(neuron_num);
   send_ids.resize(neuron_num);
@@ -52,6 +51,7 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
 
   if (communication_algorithm == p2p) {
     for (unsigned int i = 0; i < neuron_num; i++) {
+      send_neuron_buffer = new remote_neuron[neuron_num];
       if (recv_connections[i].size() != 0)
         presynaptic_neurons[i] = new remote_neuron[recv_connections[i].size()];
       else
@@ -71,7 +71,7 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
     for (unsigned int iter_send_neuron = 0; iter_send_neuron < neuron_num; iter_send_neuron++) {
       send_requests[iter_send_neuron].resize(send_ids[iter_send_neuron].size());
       for (unsigned int iter_neuron = 0; iter_neuron < send_ids[iter_send_neuron].size(); iter_neuron++) {
-        MPI_Send_init(&send_neuron_buffer, 1, MPI_REMOTE_NEURON,
+        MPI_Send_init(&(send_neuron_buffer[iter_send_neuron]), 1, MPI_REMOTE_NEURON,
                       send_ids[iter_send_neuron][iter_neuron] / n_per_rank,
                       n_per_rank * my_rank + iter_send_neuron,
                       MPI_COMM_WORLD, &(send_requests[iter_send_neuron][iter_neuron]));
@@ -82,6 +82,7 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
     for (unsigned int i = 1; i < neuron_num; i++) {
       presynaptic_neurons[i] = NULL;
     }
+    send_neuron_buffer = NULL;
     allgather_request = new MPI_Request;
   }
   receptor_type = _receptor_type;
@@ -111,8 +112,8 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
     m[i] = 0.055;
     h[i] = 0.59;
     n[i] = 0.32;
-    send_Sact[i] = 0.0001;
-    send_neuron_buffer.Sact_generated = 0.0001;
+    if (communication_algorithm == p2p)
+      send_neuron_buffer[i].Sact_generated = 0.0001;
   }
   if (my_rank == 0) {
     if (communication_algorithm == p2p)
@@ -124,9 +125,16 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
 
 void NeuronHodgkinMPI::SendRecvPresynaptic() {
     if (send_requests[current_neuron].size() != 0)
-    { MPI_Startall(send_requests[current_neuron].size(), send_requests[current_neuron].data()); }
+    {
+      send_neuron_buffer[current_neuron].Sact_generated =
+              CalcPostSActivation(send_neuron_buffer[current_neuron].Sact_generated);
+      send_neuron_buffer[current_neuron].voltage = V_old[current_neuron];
+      MPI_Startall(send_requests[current_neuron].size(), send_requests[current_neuron].data());
+    }
     if (recv_requests[current_neuron].size() != 0)
-    { MPI_Startall(recv_requests[current_neuron].size(), recv_requests[current_neuron].data()); }
+    {
+      MPI_Startall(recv_requests[current_neuron].size(), recv_requests[current_neuron].data());
+    }
 }
 
 int NeuronHodgkinMPI::process(int turns) {
@@ -138,8 +146,6 @@ int NeuronHodgkinMPI::process(int turns) {
   for (int cur_turn = 0; cur_turn < turns; cur_turn++) {
     if (communication_algorithm == p2p) {
       for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
-        send_neuron_buffer.Sact_generated = CalcPostSActivation(send_neuron_buffer.Sact_generated);
-        send_neuron_buffer.voltage = V_old[current_neuron];
         SendRecvPresynaptic();
       }
     }else {
@@ -227,4 +233,6 @@ void NeuronHodgkinMPI::print(int step, std::string name, int process_level) {
 NeuronHodgkinMPI::~NeuronHodgkinMPI() {
   if(communication_algorithm == allgather)
     delete allgather_request;
+  else
+    delete send_neuron_buffer;
 }

@@ -32,7 +32,7 @@ class NeuronHodgkin : public NeuronInterface {
   remote_neuron** presynaptic_neurons;
 
   std::vector<std::vector<int>> send_ids;
-  double* send_Sact; // Sact of neurons i'th neuron sends to
+  remote_neuron* send_neuron_buffer; // Sact of neurons i'th neuron sends to
 
   unsigned int current_neuron;
   // since we want Fv, Fm, Fh, Fn to be functions of one variable
