@@ -24,10 +24,8 @@ class NeuronHodgkinMPI : public NeuronHodgkin {
   int last_neuron_id;
 
   MPI_Datatype MPI_REMOTE_NEURON;
-  remote_neuron* send_neuron_buffer;
 
   std::vector<std::vector<MPI_Request>> recv_requests;
-  std::vector<std::vector<MPI_Request>> send_requests;
   MPI_Request* allgather_request;
  public:
   NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterface* Connections,
