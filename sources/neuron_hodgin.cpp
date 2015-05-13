@@ -40,12 +40,18 @@ NeuronHodgkin::NeuronHodgkin(unsigned int first_neuron, unsigned int last_neuron
       }
       break;
 
-    case I_EXTERNAL_RANDOM:
-      for (unsigned int i = first_neuron; i < first_neuron + neuron_num; i++) {
-        I_ext[i] = (static_cast<double>(rand()) / RAND_MAX)
-                   * I_EXTERNAL_RANDOM_MAX_VALUE;
-      }
-      break;
+      case I_EXTERNAL_RANDOM:
+          for (unsigned int i = first_neuron; i < first_neuron + neuron_num; i++) {
+              I_ext[i] = I_EXTERNAL_MIN_VALUE + (static_cast<double>(rand()) / RAND_MAX) *
+                                                        (I_EXTERNAL_MAX_VALUE - I_EXTERNAL_MIN_VALUE);
+          }
+          break;
+
+      case I_EXTERNAL_UNIFORM:
+          for (unsigned int i = first_neuron; i < first_neuron + neuron_num; i++) {
+              I_ext[i] = I_EXTERNAL_MIN_VALUE + i * (I_EXTERNAL_MAX_VALUE - I_EXTERNAL_MIN_VALUE) / neuron_num;
+          }
+          break;
 
     default:
       throw;

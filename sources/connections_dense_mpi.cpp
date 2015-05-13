@@ -8,7 +8,6 @@
 #include <iostream>
 
 #include "connections_dense_mpi.h"
-#include "mpi.h"
 
 ConnectionsDenseMPI::ConnectionsDenseMPI(int _my_rank, int _num_ranks,
                                          int _size, double _density,

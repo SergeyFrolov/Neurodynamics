@@ -42,11 +42,11 @@ class NeuronHodgkin : public NeuronInterface {
   NeuronHodgkin() {}
   NeuronHodgkin(unsigned int first_neuron, unsigned int last_neuron,
                 ConnectionsInterface* Connections,
-                unsigned int _receptor_type,
-                unsigned int _external_function = I_EXTERNAL_NULL);
+                unsigned int _receptor_type = DEFAULT_RECEPTOR,
+                unsigned int _external_function = I_EXTERNAL_DEFAULT);
   NeuronHodgkin(unsigned int _neuron_num, ConnectionsInterface* Connections,
-                unsigned int _receptor_type,
-                unsigned int _external_function = I_EXTERNAL_NULL);
+                unsigned int _receptor_type = DEFAULT_RECEPTOR,
+                unsigned int _external_function = I_EXTERNAL_DEFAULT);
 
   virtual int process(int turns);
   virtual ~NeuronHodgkin();

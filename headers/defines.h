@@ -9,8 +9,8 @@
 #define MAX(x, y) (x) > (y) ? (x) : (y)
 
 /* run config */
-#define NEURON_NUM     64
-#define PROCESS_TURNS  20
+#define NEURON_NUM     100
+#define PROCESS_TURNS  20000
 #define RANDOMIZE_SEED false
 
 #ifndef MPI_COLLECTIVE_DENSITY_THRESHOLD
@@ -22,24 +22,28 @@
 /* topology-related */
 #define CONNECT_EPS                 0.000001
 //  connections weaker than CONNECT_EPS would be disregarded
-#define CONNECTION_PROBABILITY      0.07
+#define CONNECTION_PROBABILITY      0.00
 
 #define DELTAT                      0.001  //  step
 
 /* external current */
-#define I_EXTERNAL_NULL             0
-#define I_EXTERNAL_RANDOM           1
+#define I_EXTERNAL_NULL             0x00000000
+#define I_EXTERNAL_RANDOM           0x00000020
+#define I_EXTERNAL_UNIFORM          0x00000040
+#define I_EXTERNAL_DEFAULT          I_EXTERNAL_RANDOM
 
-#define I_EXTERNAL_RANDOM_MAX_VALUE 5.
+#define I_EXTERNAL_MIN_VALUE 0.
+#define I_EXTERNAL_MAX_VALUE 7.
 // values would be in following range:
-// [0, I_EXTERNAL_RANDOM_MAX_VALUE]
+// [0, I_EXTERNAL_MAX_VALUE]
 // could be negative
 
 /* receptor-related */
-#define AMPA_RECEPTOR     0x00000010  // only this works atm
+#define AMPA_RECEPTOR     0x00000010
 #define NMDA_RECEPTOR     0x00000020
 #define GABA_A_RECEPTOR   0x00000030
 #define GABA_B_RECEPTOR   0x00000031
+#define DEFAULT_RECEPTOR  AMPA_RECEPTOR
 
 #define gAMPA_MIN         0.35
 #define gAMPA_MAX         1.00
@@ -81,7 +85,7 @@
 #define OUTPUT_FINAL           "final_state"
 #define OUTPUT_PROCESS         "mid_state"
 #ifndef OUTPUT_PROCESS_LEVEL
-#define OUTPUT_PROCESS_LEVEL   3
+#define OUTPUT_PROCESS_LEVEL   2
 #endif
 #ifndef OUTPUT_PRINT_STEP
 #define OUTPUT_PRINT_STEP      1 // 1 - every step, 10 - every 10th

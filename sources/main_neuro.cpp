@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 #include <stdlib.h>
-#include <time.h>
 #include <map>
 #include <list>
 #include <unistd.h>
@@ -15,6 +14,8 @@
 
 #ifdef NEURODYNAMICS_WITH_MPI
 #include "mpi.h"
+#else
+#include <time.h>
 #endif
 
 int main(int argc, char *argv[]) {
@@ -41,9 +42,9 @@ int main(int argc, char *argv[]) {
 #endif
   start_t = MPI_Wtime();
   ConnectionsDenseMPI *connections = new ConnectionsDenseMPI(my_rank, num_ranks, neuron_num, connection_probability,
-                                                             AMPA_RECEPTOR);
-  NeuronHodgkinMPI *neurons = new NeuronHodgkinMPI(neuron_num, connections, my_rank, num_ranks, AMPA_RECEPTOR,
-                                                   I_EXTERNAL_RANDOM);
+                                                             DEFAULT_RECEPTOR);
+  NeuronHodgkinMPI *neurons = new NeuronHodgkinMPI(neuron_num, connections, my_rank, num_ranks, DEFAULT_RECEPTOR,
+                                                   I_EXTERNAL_DEFAULT);
   Neuronetwork hh(neurons, connections);
 
   if (my_rank == 0) {
@@ -55,8 +56,8 @@ int main(int argc, char *argv[]) {
 #else
   clock_t start_t, init_finish_t, process_finish_t;
   start_t = clock();
-  ConnectionsDense* connections = new ConnectionsDense(neuron_num, connection_probability, AMPA_RECEPTOR);
-  NeuronHodgkin* neurons = new NeuronHodgkin(neuron_num, connections, AMPA_RECEPTOR, I_EXTERNAL_RANDOM);
+  ConnectionsDense* connections = new ConnectionsDense(neuron_num, connection_probability, DEFAULT_RECEPTOR);
+  NeuronHodgkin* neurons = new NeuronHodgkin(neuron_num, connections, DEFAULT_RECEPTOR, I_EXTERNAL_DEFAULT);
   Neuronetwork hh(neurons, connections);
   init_finish_t = clock();
 #endif

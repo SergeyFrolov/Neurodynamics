@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include "neuron_hodgin_mpi.h"
-#include "mpi.h"
 
 NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterface* Connections,
                                    int _my_rank, int _num_ranks,
@@ -78,22 +77,30 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
   receptor_type = _receptor_type;
   /* External voltage init */
   switch (_external_function) {
-    case I_EXTERNAL_NULL:
-      for (unsigned int i = 0; i < neuron_num; i++) {
-        I_ext[i] = 0.0;
-      }
-      break;
+      case I_EXTERNAL_NULL:
+          for (unsigned int i = 0; i < neuron_num; i++) {
+              I_ext[i] = 0.0;
+          }
+          break;
 
-    case I_EXTERNAL_RANDOM:
-      for (unsigned int i = 0; i < neuron_num; i++) {
-        I_ext[i] = (static_cast<double>(rand()) / RAND_MAX)
-                   * I_EXTERNAL_RANDOM_MAX_VALUE;
-      }
-      break;
+      case I_EXTERNAL_RANDOM:
+          for (unsigned int i = 0; i < neuron_num; i++) {
+              I_ext[i] = I_EXTERNAL_MIN_VALUE + (static_cast<double>(rand()) / RAND_MAX) *
+                                                (I_EXTERNAL_MAX_VALUE - I_EXTERNAL_MIN_VALUE);
+          }
+          break;
 
-    default:
-      throw;
+      case I_EXTERNAL_UNIFORM:
+          for (unsigned int i = 0; i < neuron_num; i++) {
+              I_ext[i] = I_EXTERNAL_MIN_VALUE + (first_neuron_id + i) *
+                                                (I_EXTERNAL_MAX_VALUE - I_EXTERNAL_MIN_VALUE) / all_neuron_num;
+          }
+          break;
+
+      default:
+          throw;
   }
+
   /* Starting variables init */
   for (unsigned int i = 0; i < neuron_num; i++) {
     V_old[i] = V_new[i] = V_REST;
@@ -121,8 +128,7 @@ void NeuronHodgkinMPI::SendRecvPresynaptic() {
       }
     }
     for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
-      if (send_ids[current_neuron].size() != 0)
-      {
+      if (send_ids[current_neuron].size() != 0) {
         send_neuron_buffer[current_neuron].Sact_generated =
                 CalcPostSActivation(send_neuron_buffer[current_neuron].Sact_generated);
         send_neuron_buffer[current_neuron].voltage = V_old[current_neuron];
@@ -159,9 +165,6 @@ int NeuronHodgkinMPI::process(int turns) {
       n[current_neuron] = RungeKutta4(&NeuronHodgkinMPI::_CalcDerivativeFn, n[current_neuron], DELTAT);
     }
     if (communication_algorithm == p2p) {
-      for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
-        ;//MPI_Waitall(send_requests[current_neuron].size(), send_requests[current_neuron].data(), MPI_STATUS_IGNORE);
-      }
       for (current_neuron = 0; current_neuron < neuron_num; current_neuron++) {
         MPI_Waitall(recv_requests[current_neuron].size(), recv_requests[current_neuron].data(), MPI_STATUS_IGNORE);
       }

@@ -26,12 +26,13 @@ class NeuronHodgkinMPI : public NeuronHodgkin {
   MPI_Datatype MPI_REMOTE_NEURON;
 
   std::vector<std::vector<MPI_Request>> recv_requests;
+
   MPI_Request* allgather_request;
  public:
   NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterface* Connections,
                    int _my_rank, int _num_ranks,
-                   unsigned int _receptor_type = AMPA_RECEPTOR,
-                   unsigned int _external_function = I_EXTERNAL_NULL);
+                   unsigned int _receptor_type = DEFAULT_RECEPTOR,
+                   unsigned int _external_function = I_EXTERNAL_DEFAULT);
   int process(int turns) override;
   void SendRecvPresynaptic() override;
   void print(int step, std::string name = OUTPUT_PROCESS, int process_level = OUTPUT_PROCESS_LEVEL) override;

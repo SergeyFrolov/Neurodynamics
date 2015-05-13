@@ -2,10 +2,6 @@
 // Use of this source code is governed by a LGPL license that can be
 // found in the LICENSE file.
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 #include "defines.h"
 #include "neuronetwork.h"
 
@@ -17,7 +13,7 @@ Neuronetwork::Neuronetwork(NeuronInterface* _Neurons, ConnectionsInterface* _Con
 
 Neuronetwork::Neuronetwork(int neuron_num) {
   Connections = new ConnectionsDense(neuron_num, CONNECTION_PROBABILITY);
-  Neurons = new NeuronHodgkin(neuron_num, Connections, AMPA_RECEPTOR);
+  Neurons = new NeuronHodgkin(neuron_num, Connections, DEFAULT_RECEPTOR);
 }
 
 Neuronetwork::Neuronetwork(int neuron_num, int receptor_type) {
@@ -39,6 +35,7 @@ int Neuronetwork::Process(int turns) {
   Neurons->process(turns);
   return 0;
 }
+
 Neuronetwork::~Neuronetwork() {
   if (!initialized_outside) {
     delete Neurons;
