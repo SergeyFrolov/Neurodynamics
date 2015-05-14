@@ -48,7 +48,7 @@ ConnectionsDense::ConnectionsDense(int _size, double _density,
 
   for (unsigned int i = 0; i < size; i++)
     for (unsigned int j = 0; j < size; j++)
-      if ((i == j) || (rand() / RAND_MAX > density)) {
+      if ((i == j) || (rand() / RAND_MAX >= density)) {
         connections[ind(j, i, size)] = 0.0;
       } else {
         connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
