@@ -28,6 +28,13 @@ class NeuronHodgkin : public NeuronInterface {
   double *I_syn;
   unsigned int receptor_type;
 
+  unsigned int* neuron_num_peaks;
+  int* neuron_first_peak_step;
+  int* neuron_last_peak_step;
+  enum voltage_dynamics {rising, falling, recently_peaked
+  };
+  voltage_dynamics* neuron_voltage_dynamics;
+
   std::vector<std::vector<SynapticConnection>> recv_connections;
   remote_neuron** presynaptic_neurons;
 
@@ -72,6 +79,7 @@ class NeuronHodgkin : public NeuronInterface {
 
   double RungeKutta4(double(NeuronHodgkin::*f)(double), double x, double dx);
 
+  void check_for_peaks(int* step);
   virtual void print(int step, std::string name = OUTPUT_PROCESS, int process_level = OUTPUT_PROCESS_LEVEL);
 };
 #endif  // NEURODYNAMICS_NEURON_HODGIN_H_

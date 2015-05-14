@@ -23,6 +23,11 @@ NeuronHodgkin::NeuronHodgkin(unsigned int first_neuron, unsigned int last_neuron
   I_syn = new double[neuron_num];
   send_neuron_buffer = new remote_neuron[neuron_num];
 
+  neuron_num_peaks = new unsigned int[neuron_num];
+  neuron_voltage_dynamics = new voltage_dynamics[neuron_num];
+  neuron_first_peak_step = new int[neuron_num];
+  neuron_last_peak_step = new int[neuron_num];
+
   recv_connections.resize(neuron_num);
   send_ids.resize(neuron_num);
   Connections->GetAllNeuronIdsToSend(&(send_ids));
@@ -61,9 +66,15 @@ NeuronHodgkin::NeuronHodgkin(unsigned int first_neuron, unsigned int last_neuron
     V_old[i] = V_new[i] = V_REST;
     I_syn[i] = 0;
 
-    m[i] = 0.0526;
-    h[i] = 0.598;
-    n[i] = 0.317;
+    m[i] = 0.07;
+    h[i] = 0.5;
+    n[i] = 0.35;
+
+    neuron_num_peaks[i] = 0;
+    neuron_first_peak_step[i] = 0;
+    neuron_last_peak_step[i] = 0;
+    neuron_voltage_dynamics[i] = falling;
+
     send_neuron_buffer[i].Sact_generated = 0.0001;
   }
 }
@@ -106,9 +117,10 @@ int NeuronHodgkin::process(int turns) {
     if((cur_turn % OUTPUT_PRINT_STEP) == 0)
 #endif
       print(cur_turn);
+    check_for_peaks(&cur_turn);
   }
 
-  print(-1, OUTPUT_FINAL, 3);
+  print(-1, OUTPUT_FINAL, 6);
   return 0;
 }
 
@@ -265,6 +277,32 @@ double NeuronHodgkin::RungeKutta4(double (NeuronHodgkin::*f)(double),
   return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
 }
 
+void NeuronHodgkin::check_for_peaks(int* step) {
+    if(*step > OUTPUT_SKIP_TURNS){
+        for (unsigned int i = 0; i < neuron_num; i++)
+        {
+            if (neuron_voltage_dynamics[i] == recently_peaked) {
+                if (V_old[i] < NEURON_PEAK_COOLDOWN_THRESHOLD)
+                    neuron_voltage_dynamics[i] = falling;
+            }
+            else if (neuron_voltage_dynamics[i] == falling) {
+                if (V_old[i] > V_new[i])
+                    neuron_voltage_dynamics[i] = rising;
+            }
+            else if (neuron_voltage_dynamics[i] == rising) {
+                if((V_old[i] > NEURON_PEAK_REGISTER_THRESHOLD) && (V_old[i] < V_new[i])) {
+                    neuron_num_peaks[i]++;
+                    neuron_voltage_dynamics[i] = recently_peaked;
+                    if (neuron_first_peak_step[i] == 0)
+                      neuron_first_peak_step[i] = *step;
+                    else
+                      neuron_last_peak_step[i] = *step;
+                }
+            }
+        }
+    }
+}
+
 
 void NeuronHodgkin::print(int step, std::string name, int process_level) {
   if (process_level < 1)
@@ -281,7 +319,8 @@ void NeuronHodgkin::print(int step, std::string name, int process_level) {
   if (process_level == 1) {
 
     for (unsigned int i = 0; i < neuron_num; i++)
-      if ((V_old[i] > V_new[i]) && (V_old[i] > OUTPUT_PROCESS_PEAK_THRESHOLD)) {
+      if ((V_old[i] > NEURON_PEAK_REGISTER_THRESHOLD) &&
+              (V_old[i] < V_new[i]) && (neuron_voltage_dynamics[i] == rising)) {
 
         std::cout << "Step " << step << ": neuron " << i <<
                   " has " << V_old[i] << " mV" << std::endl;
@@ -337,18 +376,61 @@ void NeuronHodgkin::print(int step, std::string name, int process_level) {
     std::cout << "n: ";
 
     for (unsigned int i = 0; i < neuron_num; i++) {
-      std::cout << n[i] << " ";
+        std::cout << n[i] << " ";
     }
 
     std::cout << std::endl;
   }
-  if (process_level >= 4) {
+  if ((process_level >= 4) && (send_neuron_buffer != NULL)) {
     std::cout << "send_S_act:\n";
     for (unsigned int i = 0; i < neuron_num; i++) {
       std::cout << send_neuron_buffer[i].Sact_generated << " ";
     }
     std::cout << std::endl;
   }
+
+    if (process_level >= 5) {
+        std::cout << "num_peaks: ";
+
+        for (unsigned int i = 0; i < neuron_num; i++) {
+            std::cout << neuron_num_peaks[i] << " ";
+        }
+
+        std::cout << std::endl;
+        std::cout << "Frequency: ";
+
+        for (unsigned int i = 0; i < neuron_num; i++) {
+            if (neuron_last_peak_step[i] == 0)
+                std::cout << "N/A ";
+            else
+                std::cout << (neuron_num_peaks[i] - 1)/
+                             ((neuron_last_peak_step[i] - neuron_first_peak_step[i]) * DELTAT) << " ";
+        }
+
+        std::cout << std::endl;
+    }
+
+    if (process_level >= 6) {
+        std::cout << "First peak: ";
+
+        for (unsigned int i = 0; i < neuron_num; i++) {
+            if (neuron_first_peak_step[i] == 0)
+                std::cout << "N/A ";
+            else
+                std::cout << neuron_first_peak_step[i] << " ";
+        }
+
+        std::cout << std::endl;
+        std::cout << "Last peak: ";
+
+        for (unsigned int i = 0; i < neuron_num; i++) {
+            if (neuron_last_peak_step[i] == 0)
+                std::cout << "N/A ";
+            else
+                std::cout << neuron_last_peak_step[i] << " ";
+        }
+        std::cout << std::endl;
+    }
   std::cout.rdbuf(coutbuf); // reset to standard output again
 }
 
@@ -360,6 +442,10 @@ NeuronHodgkin::~NeuronHodgkin() {
   delete[] n;
   delete[] I_ext;
   delete[] I_syn;
+  delete[] neuron_num_peaks;
+  delete[] neuron_voltage_dynamics;
+  delete[] neuron_first_peak_step;
+  delete[] neuron_last_peak_step;
   for (unsigned int i = 0; i < neuron_num; i++) {
     if (presynaptic_neurons[i] != NULL)
       delete[] presynaptic_neurons[i];

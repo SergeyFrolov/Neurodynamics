@@ -31,6 +31,11 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
   I_ext = new double[neuron_num];
   I_syn = new double[neuron_num];
 
+  neuron_num_peaks = new unsigned int[neuron_num];
+  neuron_voltage_dynamics = new voltage_dynamics[neuron_num];
+  neuron_first_peak_step = new int[neuron_num];
+  neuron_last_peak_step = new int[neuron_num];
+
   recv_connections.resize(neuron_num);
   send_ids.resize(neuron_num);
   presynaptic_neurons = new remote_neuron*[neuron_num];
@@ -106,9 +111,15 @@ NeuronHodgkinMPI::NeuronHodgkinMPI(unsigned int _neuron_num, ConnectionsInterfac
     V_old[i] = V_new[i] = V_REST;
     I_syn[i] = 0;
 
-    m[i] = 0.055;
-    h[i] = 0.59;
-    n[i] = 0.32;
+    m[i] = 0.07;
+    h[i] = 0.5;
+    n[i] = 0.35;
+
+    neuron_num_peaks[i] = 0;
+    neuron_voltage_dynamics[i] = falling;
+    neuron_first_peak_step[i] = 0;
+    neuron_last_peak_step[i] = 0;
+
     if (communication_algorithm == p2p)
       send_neuron_buffer[i].Sact_generated = 0.0001;
   }
@@ -187,11 +198,12 @@ int NeuronHodgkinMPI::process(int turns) {
     if((cur_turn % OUTPUT_PRINT_STEP) == 0)
 #endif
       print(cur_turn);
+    check_for_peaks(&cur_turn);
  }
 #ifdef NEURODYNAMICS_DEBUG
   std::cout << "Rank[" << my_rank << "] Finishing process." << std::endl;
 #endif
-  print(-1, OUTPUT_FINAL, 3);
+  print(-1, OUTPUT_FINAL, 6);
   return 0;
 }
 
