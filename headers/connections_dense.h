@@ -27,7 +27,8 @@ class ConnectionsDense : public ConnectionsInterface {
  public:
   // _size is a size of single dimension, resulting size would be size*size
   // density is a double between 0 and 1
-  ConnectionsDense(int _size, double density = CONNECTION_PROBABILITY,
+  ConnectionsDense(int _size, int graph_type = GRAPH_DEFAULT,
+                   double density = GRAPH_RAND_P_CONNECTION,
                    int receptor_type = AMPA_RECEPTOR);
   ConnectionsDense() {}
   virtual void GetAllNeuronIdsToSend(std::vector<std::vector<int>>* send_ids);

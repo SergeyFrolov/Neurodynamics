@@ -12,14 +12,13 @@
 #include "defines.h"
 #include "connections_dense.h"
 
-ConnectionsDense::ConnectionsDense(int _size, double _density,
-                                   int receptor_type) {
+ConnectionsDense::ConnectionsDense(int _size, int graph_type, double _density, int receptor_type) {
 
   assert(_size > 0);
   unsigned int edges = 0;
 
   assert(_density <= 1);
-  assert(_density > 0);
+  assert(_density >= 0);
   density = _density;
 
   double gMin, gMax;
@@ -45,15 +44,30 @@ ConnectionsDense::ConnectionsDense(int _size, double _density,
   }
   size = _size;
   connections = new double[size * size];
-
-  for (unsigned int i = 0; i < size; i++)
-    for (unsigned int j = 0; j < size; j++)
-      if ((i == j) || (rand() / RAND_MAX >= density)) {
-        connections[ind(j, i, size)] = 0.0;
-      } else {
-        connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
-        edges++;
-      }
+  switch (graph_type) {
+      case GRAPH_RAND:
+          for (unsigned int i = 0; i < size; i++)
+              for (unsigned int j = 0; j < size; j++)
+                  if ((i == j) || ((static_cast<double>(rand()) / RAND_MAX) >= density)) {
+                      connections[ind(j, i, size)] = 0.0;
+                  } else {
+                      connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
+                      edges++;
+                  }
+          break;
+      case GRAPH_RING:
+          for (unsigned int i = 0; i < size; i++)
+              for (unsigned int j = 0; j < size; j++)
+                  if ((i + 1 == j) || (( i == size - 1 ) && (j == 0))) {
+                      connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
+                      edges++;
+                  } else {
+                      connections[ind(j, i, size)] = 0.0;
+                  }
+          break;
+      default:
+          throw;
+  }
 #ifdef OUTPUT_VERBOSE
   print();
 #endif
@@ -63,7 +77,7 @@ ConnectionsDense::ConnectionsDense(int _size, double _density,
 void ConnectionsDense::GetNeuronIdsToSend(int neuron_id, std::vector<int>* send_ids) {
   assert(send_ids->empty());
   for (unsigned int i = 0; i < size; i++) {
-    if (connections[ind(i, neuron_id, size)] > CONNECT_EPS) {
+    if (connections[ind(i, neuron_id, size)] > GRAPH_CONNECT_EPS) {
       send_ids->push_back(i);
     }
   }
@@ -72,7 +86,7 @@ void ConnectionsDense::GetNeuronIdsToSend(int neuron_id, std::vector<int>* send_
 void ConnectionsDense::GetNeuronsToRecv(int neuron_id, std::vector<SynapticConnection>* recv_connections) {
   assert(recv_connections->empty());
   for (unsigned int i = 0; i < size; i++) {
-    if (connections[ind(neuron_id, i, size)] > CONNECT_EPS) {
+    if (connections[ind(neuron_id, i, size)] > GRAPH_CONNECT_EPS) {
       recv_connections->push_back({ i, connections[ind(neuron_id, i, size)] });
     }
   }

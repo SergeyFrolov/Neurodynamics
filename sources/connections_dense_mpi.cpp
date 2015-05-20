@@ -10,7 +10,7 @@
 #include "connections_dense_mpi.h"
 
 ConnectionsDenseMPI::ConnectionsDenseMPI(int _my_rank, int _num_ranks,
-                                         int _size, double _density,
+                                         int _size,  int graph_type, double _density,
                                          int receptor_type) {
 
   assert(_size > 0);
@@ -22,7 +22,7 @@ ConnectionsDenseMPI::ConnectionsDenseMPI(int _my_rank, int _num_ranks,
   num_ranks = _num_ranks;
 
   assert(_density <= 1);
-  assert(_density > 0);
+  assert(_density >= 0);
   density = _density;
   size = _size;
 
@@ -50,15 +50,30 @@ ConnectionsDenseMPI::ConnectionsDenseMPI(int _my_rank, int _num_ranks,
         throw;
     }
     connections = new double[size * size];
-
-    for (unsigned int i = 0; i < size; i++)
-      for (unsigned int j = 0; j < size; j++)
-        if ((i == j) || (static_cast<double>(rand()) / RAND_MAX >= density)) {
-          connections[ind(j, i, size)] = 0.0;
-        } else {
-          connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
-          edges++;
-        }
+    switch (graph_type) {
+        case GRAPH_RAND:
+            for (unsigned int i = 0; i < size; i++)
+                for (unsigned int j = 0; j < size; j++)
+                    if ((i == j) || ((static_cast<double>(rand()) / RAND_MAX) >= density)) {
+                        connections[ind(j, i, size)] = 0.0;
+                    } else {
+                        connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
+                        edges++;
+                    }
+            break;
+        case GRAPH_RING:
+            for (unsigned int i = 0; i < size; i++)
+                for (unsigned int j = 0; j < size; j++)
+                    if ((i + 1 == j) || (( i == size - 1 ) && (j == 0))) {
+                        connections[ind(j, i, size)] = gMin + (gMax - gMin) * static_cast<double>(rand()) / RAND_MAX;
+                        edges++;
+                    } else {
+                        connections[ind(j, i, size)] = 0.0;
+                    }
+            break;
+        default:
+            throw;
+    }
 #ifdef OUTPUT_VERBOSE
   print();
 #endif

@@ -22,7 +22,7 @@ class ConnectionsDenseMPI : public ConnectionsDense {
   // _size is a size of single dimension, resulting size would be size*size
   // density is a double between 0 and 1
   ConnectionsDenseMPI(int _my_rank, int _num_ranks, int _size,
-                      double density = CONNECTION_PROBABILITY,
+                      int graph_type = GRAPH_DEFAULT, double density = GRAPH_RAND_P_CONNECTION,
                       int receptor_type = AMPA_RECEPTOR);
   void GetAllNeuronIdsToSend(std::vector<std::vector<int>>* send_ids) override;
   void GetAllNeuronsToRecv(std::vector<std::vector<SynapticConnection>>* recv_connections) override;
