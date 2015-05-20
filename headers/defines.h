@@ -20,9 +20,12 @@
 #endif
 
 /* topology-related */
-#define CONNECT_EPS                 0.000001
+#define GRAPH_RAND                  0x00000010
+#define GRAPH_RAND_P_CONNECTION     0.00000000     // probability of connection in random
+#define GRAPH_RING                  0x00000020
+#define GRAPH_CONNECT_EPS           0.000001
 //  connections weaker than CONNECT_EPS would be disregarded
-#define CONNECTION_PROBABILITY      0.00
+#define GRAPH_DEFAULT               GRAPH_RAND
 
 #define DELTAT                      0.001  //  step
 
