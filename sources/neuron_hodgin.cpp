@@ -382,7 +382,7 @@ void NeuronHodgkin::print(int step, std::string name, int process_level) {
     std::cout << std::endl;
   }
   if ((process_level >= 4) && (send_neuron_buffer != NULL)) {
-    std::cout << "send_S_act:\n";
+    std::cout << "send_S_act: ";
     for (unsigned int i = 0; i < neuron_num; i++) {
       std::cout << send_neuron_buffer[i].Sact_generated << " ";
     }

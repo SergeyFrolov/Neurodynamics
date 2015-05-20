@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
   int turns_num = (argc >= 2) ? atoi(argv[1]) : PROCESS_TURNS;
   int neuron_num = (argc >= 3) ? atoi(argv[2]) : NEURON_NUM;
-  double connection_probability = (argc >= 4) ? atof(argv[3]) : CONNECTION_PROBABILITY;
+  double connection_probability = (argc >= 4) ? atof(argv[3]) : GRAPH_RAND_P_CONNECTION;
 
 #ifdef NEURODYNAMICS_WITH_MPI
   MPI_Init(&argc, &argv);
@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
   std::cout << "Hello from rank " << my_rank << " out of " << num_ranks << std::endl;
 #endif
   start_t = MPI_Wtime();
-  ConnectionsDenseMPI *connections = new ConnectionsDenseMPI(my_rank, num_ranks, neuron_num, connection_probability,
-                                                             DEFAULT_RECEPTOR);
+  ConnectionsDenseMPI *connections = new ConnectionsDenseMPI(my_rank, num_ranks, neuron_num, GRAPH_DEFAULT,
+                                                             connection_probability, DEFAULT_RECEPTOR);
   NeuronHodgkinMPI *neurons = new NeuronHodgkinMPI(neuron_num, connections, my_rank, num_ranks, DEFAULT_RECEPTOR,
                                                    I_EXTERNAL_DEFAULT);
   Neuronetwork hh(neurons, connections);
@@ -52,11 +52,13 @@ int main(int argc, char *argv[]) {
       std::cout << "Amount of neurons      " << neuron_num << std::endl;
       std::cout << "Connection probability " << connection_probability << std::endl;
   }
+  MPI_Barrier(MPI_COMM_WORLD);
   init_finish_t = MPI_Wtime();
 #else
   clock_t start_t, init_finish_t, process_finish_t;
   start_t = clock();
-  ConnectionsDense* connections = new ConnectionsDense(neuron_num, connection_probability, DEFAULT_RECEPTOR);
+  ConnectionsDense* connections = new ConnectionsDense(neuron_num, GRAPH_DEFAULT,
+                                                       connection_probability, DEFAULT_RECEPTOR);
   NeuronHodgkin* neurons = new NeuronHodgkin(neuron_num, connections, DEFAULT_RECEPTOR, I_EXTERNAL_DEFAULT);
   Neuronetwork hh(neurons, connections);
   init_finish_t = clock();

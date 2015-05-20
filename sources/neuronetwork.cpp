@@ -12,12 +12,12 @@ Neuronetwork::Neuronetwork(NeuronInterface* _Neurons, ConnectionsInterface* _Con
 }
 
 Neuronetwork::Neuronetwork(int neuron_num) {
-  Connections = new ConnectionsDense(neuron_num, CONNECTION_PROBABILITY);
+  Connections = new ConnectionsDense(neuron_num, GRAPH_RAND_P_CONNECTION);
   Neurons = new NeuronHodgkin(neuron_num, Connections, DEFAULT_RECEPTOR);
 }
 
 Neuronetwork::Neuronetwork(int neuron_num, int receptor_type) {
-  Connections = new ConnectionsDense(neuron_num, CONNECTION_PROBABILITY,
+  Connections = new ConnectionsDense(neuron_num, GRAPH_RAND_P_CONNECTION,
                                      receptor_type);
   Neurons = new NeuronHodgkin(neuron_num, Connections, receptor_type);
 
@@ -25,7 +25,7 @@ Neuronetwork::Neuronetwork(int neuron_num, int receptor_type) {
 
 Neuronetwork::Neuronetwork(int neuron_num, int receptor_type,
                            int external_function) {
-  Connections = new ConnectionsDense(neuron_num, CONNECTION_PROBABILITY,
+  Connections = new ConnectionsDense(neuron_num, GRAPH_RAND_P_CONNECTION,
                                      receptor_type);
   Neurons = new NeuronHodgkin(neuron_num, Connections, receptor_type,
                               external_function);
